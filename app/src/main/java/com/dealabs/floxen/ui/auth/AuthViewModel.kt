@@ -2,6 +2,7 @@ package com.dealabs.floxen.ui.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.dealabs.floxen.model.UserData
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.DataSnapshot
@@ -15,13 +16,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-
-data class UserData(
-    val uid: String = "",
-    val email: String = "",
-    val fullName: String = "",
-    val createdAt: Long = System.currentTimeMillis()
-)
 
 sealed class AuthState {
     object Loading : AuthState()

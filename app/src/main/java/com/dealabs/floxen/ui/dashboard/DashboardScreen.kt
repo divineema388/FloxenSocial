@@ -43,6 +43,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.dealabs.floxen.model.SocialPost
+import com.dealabs.floxen.model.UserData
 import com.dealabs.floxen.ui.auth.AuthViewModel
 import com.dealabs.floxen.ui.theme.FloxenGradient
 import com.google.firebase.database.DataSnapshot
@@ -50,17 +52,6 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
-import kotlinx.coroutines.tasks.await
-
-data class SocialPost(
-    val id: String = "",
-    val userId: String = "",
-    val userName: String = "",
-    val content: String = "",
-    val timestamp: Long = System.currentTimeMillis(),
-    val likes: Int = 0,
-    val likedBy: Map<String, Boolean> = emptyMap()
-)
 
 @Composable
 fun DashboardScreen(
@@ -74,7 +65,9 @@ fun DashboardScreen(
     // Fetch posts from Realtime Database
     LaunchedEffect(currentUser) {
         if (currentUser != null) {
-            fetchPosts()
+            fetchPosts { postsList ->
+                posts = postsList
+            }
         }
     }
 
@@ -231,21 +224,29 @@ fun DashboardScreen(
                             PostCard(
                                 post = post,
                                 currentUserId = currentUser?.uid ?: "",
-                                onLikeClick = { toggleLike(post, currentUser?.uid ?: "") }
+                                onLikeClick = { 
+                                    toggleLike(post, currentUser?.uid ?: "") 
+                                    // Refresh posts after like
+                                    fetchPosts { postsList ->
+                                        posts = postsList
+                                    }
+                                }
                             )
                         }
                     }
                 }
             }
             
-            // Create Post Dialog
+            // Create Post Dialog - Simplified version
             if (showCreatePost) {
-                CreatePostDialog(
+                SimpleCreatePostDialog(
                     currentUser = currentUser,
                     onDismiss = { showCreatePost = false },
                     onPostCreated = { 
                         showCreatePost = false
-                        fetchPosts()
+                        fetchPosts { postsList ->
+                            posts = postsList
+                        }
                     }
                 )
             }
@@ -347,17 +348,103 @@ fun PostCard(
 }
 
 @Composable
-fun CreatePostDialog(
+fun SimpleCreatePostDialog(
     currentUser: UserData?,
     onDismiss: () -> Unit,
     onPostCreated: () -> Unit
 ) {
-    // Implementation for create post dialog
-    // You can expand this with a proper dialog and text field
+    // Simple overlay for creating posts
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background.copy(alpha = 0.8f))
+            .padding(16.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            shape = RoundedCornerShape(20.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Create Post",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                Text(
+                    text = "Post creation feature coming soon!",
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+                
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                Button(
+                    onClick = {
+                        // For now, create a sample post
+                        createSamplePost(currentUser)
+                        onPostCreated()
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Create Sample Post")
+                }
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                Button(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
+                ) {
+                    Text(
+                        "Cancel",
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+        }
+    }
+}
+
+private fun createSamplePost(currentUser: UserData?) {
+    if (currentUser == null) return
+    
+    val database = Firebase.database.reference
+    val postId = database.child("posts").push().key ?: return
+    
+    val samplePost = SocialPost(
+        id = postId,
+        userId = currentUser.uid,
+        userName = currentUser.fullName.ifEmpty { currentUser.email.split("@").first() },
+        content = "Hello FloxenSocial! This is my first post! 🎉",
+        timestamp = System.currentTimeMillis(),
+        likes = 0,
+        likedBy = emptyMap()
+    )
+    
+    database.child("posts").child(postId).setValue(samplePost)
 }
 
 private fun formatTimestamp(timestamp: Long): String {
-    // Simple timestamp formatting
     return android.text.format.DateUtils.getRelativeTimeSpanString(
         timestamp,
         System.currentTimeMillis(),
@@ -366,7 +453,7 @@ private fun formatTimestamp(timestamp: Long): String {
 }
 
 // Function to fetch posts from Realtime Database
-private fun fetchPosts() {
+private fun fetchPosts(onPostsFetched: (List<SocialPost>) -> Unit) {
     val database = Firebase.database.reference
     database.child("posts")
         .orderByChild("timestamp")
@@ -377,11 +464,13 @@ private fun fetchPosts() {
                     val post = child.getValue(SocialPost::class.java)
                     post?.let { postsList.add(it) }
                 }
-                // Update posts state (you'll need to handle this in your composable)
+                // Reverse to show newest first
+                onPostsFetched(postsList.reversed())
             }
 
             override fun onCancelled(error: DatabaseError) {
                 // Handle error
+                onPostsFetched(emptyList())
             }
         })
 }

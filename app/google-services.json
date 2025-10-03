@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "710068472162",
+    "firebase_url": "https://floxensocialapp-default-rtdb.firebaseio.com",
+    "project_id": "floxensocialapp",
+    "storage_bucket": "floxensocialapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:710068472162:android:78acb41852c06a8336443b",
+        "android_client_info": {
+          "package_name": "com.dealabs.floxen"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBQrftPVZXT4KzqQqKIAVuUVHvedabqsLA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

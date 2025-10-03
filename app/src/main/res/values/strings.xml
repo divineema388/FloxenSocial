@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">FloxenSocial</string>
+    <string name="welcome_to_floxen">Welcome to FloxenSocial! 🌟</string>
+    <string name="welcome_subtitle">Connect, Share, and Explore with Friends</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="full_name">Full Name</string>
+    <string name="login">Login</string>
+    <string name="signup">Sign Up</string>
+    <string name="dont_have_account">Don\'t have an account?</string>
+    <string name="already_have_account">Already have an account?</string>
+    <string name="login_successful">Login Successful!</string>
+    <string name="signup_successful">Sign Up Successful!</string>
+    <string name="error_invalid_credentials">Invalid email or password</string>
+    <string name="error_password_mismatch">Passwords don\'t match</string>
+    <string name="error_generic">Something went wrong. Please try again.</string>
+    <string name="dashboard_welcome">Welcome to your Dashboard!</string>
+    <string name="logout">Logout</string>
+</resources>
